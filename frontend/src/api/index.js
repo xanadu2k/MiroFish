@@ -3,7 +3,9 @@ import i18n from '../i18n'
 
 // 创建axios实例
 const service = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5556',
+  // 这里用空字符串让下面各 API 文件里的 `/api/...` 保持原样，
+  // 避免拼成 `/api/api/...` 导致 404；同时仍然是相对路径，局域网访问也可用。
+  baseURL: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 300000, // 5分钟超时（本体生成可能需要较长时间）
   headers: {
     'Content-Type': 'application/json'
