@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.mirofish.dev</string>
+
+    <key>WorkingDirectory</key>
+    <string>/Volumes/MasterDisk/Documents/Github/MiroFish</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/bin/zsh</string>
+      <string>-lc</string>
+      <string>chmod +x /Volumes/MasterDisk/Documents/Github/MiroFish/ops/launchd/run.sh &amp;&amp; /Volumes/MasterDisk/Documents/Github/MiroFish/ops/launchd/run.sh</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+      <key>SuccessfulExit</key>
+      <false/>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/mirofish-launchd.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/mirofish-launchd.err.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>PATH</key>
+      <string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/tqf/.local/bin</string>
+      <key>MIROFISH_FRONTEND_URL</key>
+      <string>http://localhost:5555</string>
+      <key>MIROFISH_API_BASE</key>
+      <string>http://127.0.0.1:5556</string>
+    </dict>
+  </dict>
+</plist>
