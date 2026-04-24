@@ -4,6 +4,42 @@
 
 ---
 
+## 快速上手（30 秒）
+
+首次安装（仅一次）：
+
+```bash
+./ops/launchd/install.sh
+```
+
+日常使用（任选其一）：
+
+```bash
+./mirofish_auto_archive_rounds.sh
+./mirofish_export_graph.sh
+```
+
+健康检查（前后端是否在线）：
+
+```bash
+curl -s -o /dev/null -w "frontend:%{http_code}\n" http://127.0.0.1:5555/
+curl -s -o /dev/null -w "backend:%{http_code}\n" "http://127.0.0.1:5556/api/simulation/history?limit=1"
+```
+
+看实时日志：
+
+```bash
+tail -f /tmp/mirofish-launchd.out.log /tmp/mirofish-launchd.err.log
+```
+
+停止服务（可选）：
+
+```bash
+launchctl bootout "gui/$(id -u)/com.mirofish.dev" || true
+```
+
+---
+
 ## 零、打火机能力（自动拉起服务）
 
 这两条 `.sh` 都已经具备“打火机”能力：
@@ -18,6 +54,93 @@
 - `./mirofish_export_graph.sh`
 
 不需要先手动启动服务。
+
+---
+
+## 零点五、持续监控与保活（launchd，推荐）
+
+如果你希望 **关闭终端窗口后服务仍持续运行**，并且在异常退出后 **自动重启**，可以使用本仓库新增的 `launchd` 常驻任务。
+
+### 安装并启动（一次性）
+
+在项目根目录执行：
+
+```bash
+./ops/launchd/install.sh
+```
+
+默认会把服务托管为 `LaunchAgent`（用户登录态），并将日志写入：
+
+- `/tmp/mirofish-launchd.out.log`
+- `/tmp/mirofish-launchd.err.log`
+
+### 持续看日志（本机实时）
+
+```bash
+tail -f /tmp/mirofish-launchd.out.log /tmp/mirofish-launchd.err.log
+```
+
+### 查看是否仍在运行（本机）
+
+```bash
+launchctl print gui/$(id -u)/com.mirofish.dev
+```
+
+判定基准（建议）：
+
+- 输出中看到 `state = running`：表示服务处于运行态
+- 若不是 running，可执行一次：
+
+```bash
+launchctl kickstart -k "gui/$(id -u)/com.mirofish.dev"
+```
+
+### 查看端口/进程（本机）
+
+```bash
+lsof -nP -iTCP:5555 -sTCP:LISTEN
+lsof -nP -iTCP:5556 -sTCP:LISTEN
+ps -ax | egrep "vite --host|npm run dev|uv run python run.py" | egrep -v egrep
+```
+
+### 端口冲突处理（本机）
+
+若 `5555/5556` 已被其他程序占用：
+
+1. 先定位占用者：
+
+```bash
+lsof -nP -iTCP:5555 -sTCP:LISTEN
+lsof -nP -iTCP:5556 -sTCP:LISTEN
+```
+
+2. 确认不是当前 MiroFish 实例后，再终止对应 PID（示例）：
+
+```bash
+kill <PID>
+```
+
+3. 重新拉起 launchd 任务：
+
+```bash
+launchctl kickstart -k "gui/$(id -u)/com.mirofish.dev"
+```
+
+### 健康检查（本机）
+
+```bash
+curl -s -o /dev/null -w "frontend:%{http_code}\n" http://127.0.0.1:5555/
+curl -s -o /dev/null -w "backend:%{http_code}\n" "http://127.0.0.1:5556/api/simulation/history?limit=1"
+```
+
+### 停止/卸载（可选）
+
+停止并移除 launchd 任务：
+
+```bash
+launchctl bootout "gui/$(id -u)/com.mirofish.dev" || true
+rm -f "${HOME}/Library/LaunchAgents/com.mirofish.dev.plist"
+```
 
 ---
 
@@ -190,6 +313,10 @@
 - 可以。  
 - 若没开图谱写回，影响不大；若开了图谱写回，建议至少在完结后导出一次“最终快照”。
 
+### Q4: 长任务（尤其报告生成）期间可以重启 backend 吗？
+- 不建议。当前报告生成属于后台线程任务，重启 backend 可能导致进行中的报告任务中断。
+- 建议在任务完成前仅做监控，不做重启；若任务停滞，优先新开一个 `report_id` 并行兜底。
+
 ---
 
 ## 六、你当前已新增的脚本清单（确认）
@@ -198,4 +325,7 @@
 - `mirofish_export_graph.sh`
 - `backend/scripts/auto_archive_rounds.py`
 - `backend/scripts/export_graph_snapshot.py`
+- `ops/launchd/install.sh`
+- `ops/launchd/run.sh`
+- `ops/launchd/com.mirofish.dev.plist`
 
