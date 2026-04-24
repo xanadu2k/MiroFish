@@ -17,6 +17,7 @@
 ```bash
 ./mirofish_auto_archive_rounds.sh
 ./mirofish_export_graph.sh
+./mirofish_htmlize_project.sh
 ```
 
 健康检查（前后端是否在线）：
@@ -176,6 +177,48 @@ rm -f "${HOME}/Library/LaunchAgents/com.mirofish.dev.plist"
 
 ---
 
+### 3) `mirofish_htmlize_project.sh`
+
+**作用**  
+给定 `project_id (proj_*)`，把该项目关联的高价值本地 JSON/JSONL 记录转成可读 HTML，并同时做两份输出：
+- **原地输出**：贴着源文件生成 `.html`
+- **集中汇总**：复制到统一复盘目录，按 `proj_*` 聚合，附 `index.html` 导航页
+
+当前覆盖（按存在情况尽力生成）：
+- 项目级：
+  - `backend/uploads/projects/<proj_id>/project.json` → `project.html`
+- 仿真级：
+  - `backend/uploads/simulations/<sim_id>/state.json` → `state.html`
+  - `backend/uploads/simulations/<sim_id>/run_state.json` → `run_state.html`
+  - `backend/uploads/simulations/<sim_id>/simulation_config.json` → `simulation_config.html`
+  - `backend/uploads/simulations/<sim_id>/reddit_profiles.json` → `reddit_profiles.html`
+  - `backend/uploads/simulations/<sim_id>/{twitter,reddit}/actions.jsonl` → `actions.html`（聊天视图）
+- 报告级：
+  - `backend/uploads/reports/<report_id>/meta.json` → `meta.html`
+  - `backend/uploads/reports/<report_id>/progress.json` → `progress.html`
+  - `backend/uploads/reports/<report_id>/agent_log.jsonl` → `agent_log.html`（过程视图）
+- 图谱级（若能从仿真关联到 graph_id）：
+  - `backend/uploads/graphs/<graph_id>/export_meta.json` → `export_meta.html`
+  - `backend/uploads/graphs/<graph_id>/graph.json` → `graph.html`
+
+**启动方式**
+
+```bash
+./mirofish_htmlize_project.sh
+```
+
+**交互行为**
+- 自动尝试从 `backend/uploads/projects/` 里找最近的 `proj_*` 作为默认值
+- 你也可以手动输入任意 `proj_*`
+
+**输出位置**
+- 原地输出：写回各自源目录（便于贴源文件查看）
+- 集中复盘入口：
+  - `backend/uploads/html_review/<proj_id>/index.html`
+  - 同目录下按 `projects/`, `simulations/`, `reports/`, `graphs/` 分层聚合所有复制后的 HTML
+
+---
+
 ## 二、脚本详细说明
 
 ## A. 自动归档脚本
@@ -323,6 +366,7 @@ rm -f "${HOME}/Library/LaunchAgents/com.mirofish.dev.plist"
 
 - `mirofish_auto_archive_rounds.sh`
 - `mirofish_export_graph.sh`
+- `mirofish_htmlize_project.sh`
 - `backend/scripts/auto_archive_rounds.py`
 - `backend/scripts/export_graph_snapshot.py`
 - `ops/launchd/install.sh`
